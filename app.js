@@ -1,4 +1,4 @@
-import {slots, sum, totals, paidHours, roastPlan, sampleDay, blankDay, cents} from './model.js';
+import {slots, sum, totals, paidHours, roastPlan, sampleDay, blankDay, cents} from './model.js?v=2';
 const $=selector=>document.querySelector(selector);
 const storageKey='shiftbook-demo-v1';
 let store={};let storageAvailable=true;
