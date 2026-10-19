@@ -8,3 +8,5 @@ test('paid hours deduct unpaid breaks and handle midnight',()=>{assert.equal(pai
 test('roast assumptions are explicit, stock cannot create a negative cook',()=>{assert.deepEqual(roastPlan(2397,550,5),{needed:4,cook:0});assert.deepEqual(roastPlan(2397,550,0,'up'),{needed:5,cook:5});assert.deepEqual(roastPlan(1000,0,0),{needed:null,cook:null});assert.deepEqual(roastPlan(1650,550,1.5),{needed:3,cook:1.5});});
 
 test('anonymous sample schedules match printed paid-hour totals',()=>{assert.equal(sampleDay('2026-10-12').shifts.reduce((n,s)=>n+paidHours(s),0),38);assert.equal(sampleDay('2026-10-13').shifts.reduce((n,s)=>n+paidHours(s),0),39);});
+
+test('timeline shows half-hour shift spans and overnight overlap without inventing break timing',async()=>{const {shiftOverlap}=await import('../model.js');assert.equal(shiftOverlap({start:'09:30',end:'17:00'},540,570),0);assert.equal(shiftOverlap({start:'09:30',end:'17:00'},570,600),30);assert.equal(shiftOverlap({start:'18:00',end:'01:00'},1410,1440),30);assert.equal(shiftOverlap({start:'09:00',end:'09:00'},540,600),0);});
