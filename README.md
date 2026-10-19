@@ -8,7 +8,7 @@ A browser-local demo based on daily sales, labour, roast-preparation and staffin
 
 ## Try it
 
-October 12 and 13, 2026 contain sample sales entries transcribed from the supplied worksheets. Staff shifts are illustrative and use generic names. Other dates start blank. Edit hourly entries, add shifts, try roast assumptions, complete the checklist and download feedback. Data saves separately in each browser using localStorage; downloading a day exports JSON. Feedback is downloaded as text and must be sent back manually.
+October 12 and 13, 2026 contain sample sales entries transcribed from the supplied worksheets. Staff shifts use generic names and follow the printed times. Break deductions are inferred to reconcile to the printed scheduled totals (38 Monday, 39 Tuesday); the actual break policy needs confirmation. Other dates start blank. Edit hourly entries, add shifts, try roast assumptions, complete the checklist and download feedback. Data saves separately in each browser using localStorage; downloading a day exports JSON. Feedback is downloaded as text and must be sent back manually.
 
 ## Calculation contract
 
