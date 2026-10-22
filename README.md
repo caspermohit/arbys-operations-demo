@@ -21,3 +21,9 @@ Sales forecasts and labour allowances are manual inputs. Roast forecasts are sep
 ## Deployment
 
 Serve this repository root through GitHub Pages (main branch, root folder). All assets use relative paths, so project Pages URLs work. No source scans, credentials or employee identities are included.
+
+## Printing and phones
+
+Use the report selector and **Print / Save PDF** at the top. Full day prints the sales/cooking/labour activity worksheet and a separate half-hour staff schedule in US Letter landscape. Choose an individual worksheet to print one report. Reports use the current edited values, include the business date and signature lines, and omit application controls. Turn off browser headers/footers for a clean worksheet. Large rosters can continue onto additional pages rather than dropping employees.
+
+Phone layout defaults to **Easy entry**, with labelled two-column table rows and larger fields. Switch to **Full table** to swipe through the original columns. The schedule timeline scrolls horizontally with employee names pinned on the left. Both phone layouts print the same full worksheets.

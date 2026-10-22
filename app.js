@@ -1,4 +1,5 @@
-import {slots, sum, totals, paidHours, roastPlan, sampleDay, blankDay, cents, shiftOverlap} from './model.js?v=3';
+import {renderReports} from './reports.js?v=4';
+import {slots, sum, totals, paidHours, roastPlan, sampleDay, blankDay, cents, shiftOverlap} from './model.js?v=4';
 const $=selector=>document.querySelector(selector);
 const storageKey='shiftbook-demo-v1';
 let store={};let storageAvailable=true;
@@ -13,7 +14,22 @@ const title={sales:'Daily sales',staff:'Staff schedule',roasts:'Beef preparation
 function save(){try{localStorage.setItem(storageKey,JSON.stringify(store));storageAvailable=true;}catch{storageAvailable=false;}$('#save-status').textContent=storageAvailable?'✓ Saved on this browser · '+new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'}):'Browser storage unavailable · Download your day to keep your changes';}
 function metric(label,value,note,featured=false){return `<div class="metric ${featured?'featured':''}"><div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-note">${note}</div></div>`;}
 function numberInput(value,attrs,label,step='1'){return `<input type="number" min="0" max="1000000" step="${step}" value="${value}" aria-label="${escape(label)}" ${attrs}>`;}
-function render(){const d=day();$('#title').textContent=title[tab];document.querySelectorAll('nav button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);if(b.dataset.tab===tab)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});$('#content').innerHTML=({sales:renderSales,staff:renderStaff,roasts:renderRoasts,checks:renderChecks,feedback:renderFeedback}[tab])(d);}
+function render(){const d=day();$('#title').textContent=title[tab];document.querySelectorAll('nav button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);if(b.dataset.tab===tab)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});$('#content').innerHTML=({sales:renderSales,staff:renderStaff,roasts:renderRoasts,checks:renderChecks,feedback:renderFeedback}[tab])(d);enhanceTables();}
+function enhanceTables(){
+ document.querySelectorAll('#content table').forEach(table=>{
+  if(table.classList.contains('schedule-grid'))return;
+  const headers=[...table.querySelectorAll('thead tr:last-child th')].map(h=>h.textContent);
+  if(!headers.length)return;
+  table.classList.add('entry-table');
+  table.querySelectorAll('tbody tr, tfoot tr').forEach(row=>[...row.children].forEach((cell,i)=>{cell.dataset.label=headers[i]||'';}));
+ });
+ document.querySelectorAll('#content .table-wrap').forEach((wrap,i)=>{wrap.tabIndex=0;wrap.setAttribute('role','region');wrap.setAttribute('aria-label','Worksheet table '+(i+1)+'; scroll sideways for more columns');});
+}
+function preparePrint(){ $('#print-root').innerHTML=renderReports(day(),$('#print-scope').value); }
+function printReport(){preparePrint();window.print();}
+window.addEventListener('beforeprint',preparePrint);
+$('#print-report').addEventListener('click',printReport);
+$('#mobile-view').addEventListener('change',e=>document.body.classList.toggle('mobile-easy',e.target.value==='easy'));
 function renderSales(d){const t=totals(d);let cs=0,cf=0,ch=0;
  const rows=d.rows.map((r,i)=>{cs+=cents(r.sales);cf+=cents(r.forecast);ch+=Number(r.hours);const variance=(cs-cf)/100;return `<tr><td><strong>${slots[i]}</strong></td><td>${numberInput(r.forecast,`data-row="${i}" data-field="forecast"`,`${slots[i]} forecast sales`,'0.01')}</td><td>${numberInput(r.sales,`data-row="${i}" data-field="sales"`,`${slots[i]} actual sales`,'0.01')}</td><td>${money(cs/100)}</td><td class="${variance>=0?'positive':'negative'}">${signedMoney(variance)}</td><td>${cf?`${num((cs-cf)/cf*100,1)}%`:'—'}</td><td>${numberInput(r.customers,`data-row="${i}" data-field="customers"`,`${slots[i]} customers`)}</td><td>${numberInput(r.hours,`data-row="${i}" data-field="hours"`,`${slots[i]} actual crew hours`,'0.25')}</td><td>${num(ch,2)}</td><td>${ch?money(cs/100/ch):'—'}</td></tr>`;}).join('');
  const max=Math.max(1,...d.rows.flatMap(r=>[r.forecast,r.sales]));
@@ -52,7 +68,7 @@ function updateField(e){const el=e.target,d=day();if(el.matches('input[type=numb
  render();if(focusSelector){const replacement=$(focusSelector);if(replacement){replacement.replaceWith(el);if(wasFocused)el.focus({preventScroll:true});}}
 }
 $('#content').addEventListener('change',e=>{if(e.target.type!=='number')updateField(e);});
-$('#content').addEventListener('input',e=>{if(e.target.type==='number'||e.target.dataset.feedback)updateField(e);});
+$('#content').addEventListener('input',e=>{if(e.target.type==='number'||e.target.type==='text'||e.target.dataset.feedback)updateField(e);});
 $('#content').addEventListener('click',e=>{const button=e.target.closest('button');if(!button)return;if(button.id==='add-shift'){day().shifts.push({name:'New team member',station:'Front line',start:'10:00',end:'15:00',break:0});save();render();}if(button.dataset.remove!==undefined){day().shifts.splice(Number(button.dataset.remove),1);save();render();}if(button.id==='download-feedback'){const f=day().feedback;download(`shiftbook-feedback-${date}.txt`,`SHIFTBOOK PROTOTYPE FEEDBACK\nBusiness date: ${date}\n\nWHAT FEELS RIGHT\n${f.works}\n\nNUMBERS OR RULES TO CHANGE\n${f.changes}\n\nOTHER NOTES\n${f.notes}\n\nPlanning assumptions: ${day().rounding} rounding; $${day().perRoast} sales per roast; manually entered forecast windows.\n`,'text/plain');}if(button.id==='export-feedback-day')exportDay();});
-$('#show-help').addEventListener('click',()=>{tab='feedback';render();});$('#export').addEventListener('click',exportDay);$('#print').addEventListener('click',()=>window.print());$('#reset').addEventListener('click',()=>{if(confirm('Restore this date to its original sample (or blank worksheet)? Your edits and feedback for this date will be replaced.')){delete store[date];day();save();render();}});
+$('#show-help').addEventListener('click',()=>{tab='feedback';render();});$('#export').addEventListener('click',exportDay);$('#print').addEventListener('click',printReport);$('#reset').addEventListener('click',()=>{if(confirm('Restore this date to its original sample (or blank worksheet)? Your edits and feedback for this date will be replaced.')){delete store[date];day();save();render();}});
 render();if(!storageAvailable)$('#save-status').textContent='Browser storage unavailable · Download your day to keep your changes';
